@@ -2,6 +2,7 @@ const { successResponse, errorResponse } = require("../helpers/response")
 const bcrypt = require( 'bcryptjs' )
 const User = require('../models/User')
 const { tokenGenerate } = require("../helpers/tokenGenerate")
+const { verify } = require("../helpers/googleVerify")
 const login = async ( req, res ) => {
     const { email, password } = req.body
     try {
@@ -24,6 +25,30 @@ const login = async ( req, res ) => {
     }
 }
 
+const googleSignIn = async ( req, res ) => {
+    const { id_token } = req.body
+    try {
+        const { name, email, img } = await verify( id_token )
+        let user = await User.findOne({ email })
+        if( !user ) {
+            const data = { 
+                name,
+                email,
+                password: ':p',
+                img,
+                google: true
+            }
+            user = new User(data)
+            await user.save()
+        }
+        if( !user.status ) errorResponse( req, res, 'Usuario bloqueado', 401 )
+
+        const token = await tokenGenerate( user.id )
+        successResponse( req, res, { user, token } )
+    } catch (err) {
+        errorResponse( req, res, 'El token de google no es valido' )
+    }
+}
 module.exports = {
-    login
+    login, googleSignIn
 }
