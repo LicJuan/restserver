@@ -26,7 +26,7 @@ router.put( '/:id', [
 router.delete( '/:id',[
     tokenVerification,
     // isAdmin,
-    hasRoles( 'ADMIN_ROLE', 'USER_ROLE', 'SALES_ROLE' ),
+    hasRoles( 'ADMIN_ROLE', 'SALES_ROLE' ),
     check('id', 'No es un id valido').isMongoId(),
     check('id').custom( isUserById ),
     fieldsValidate
